@@ -1,176 +1,98 @@
+// var firebaseConfig = {
+//   apiKey: "AIzaSyAmB5TI4x4s0X0KwqOlY8_FHsXofXd5mDQ",
+//   authDomain: "choochoo-dff3e.firebaseapp.com",
+//   databaseURL: "https://choochoo-dff3e.firebaseio.com",
+//   projectId: "choochoo-dff3e",
+//   storageBucket: "choochoo-dff3e.appspot.com",
+//   messagingSenderId: "373847630827",
+//   appId: "1:373847630827:web:b45a51f89312ee00"
+// };
 var firebaseConfig = {
-    apiKey: "AIzaSyCj_cTog4EvaklKThbVDBL_RMnNpjkHOYc",
-    authDomain: "trainscheduler-22501.firebaseapp.com",
-    databaseURL: "https://trainscheduler-22501.firebaseio.com",
-    projectId: "trainscheduler-22501",
-    storageBucket: "",
-    messagingSenderId: "576070913125",
-    appId: "1:576070913125:web:a814a0f30c2fe644"
-  };
+  apiKey: "AIzaSyCq5Fo3cCTxNmm5z2MTtWlu2qU2lv3L-tg",
+  authDomain: "train-scheduler-1d159.firebaseapp.com",
+  databaseURL: "https://train-scheduler-1d159.firebaseio.com",
+  projectId: "train-scheduler-1d159",
+  storageBucket: "train-scheduler-1d159.appspot.com",
+  messagingSenderId: "247604083337",
+  appId: "1:247604083337:web:38f175669183f37c"
+};
+
+
   
   firebase.initializeApp(firebaseConfig);
 
   var database = firebase.database();
   
-  //Run Time  
-  setInterval(function(startTime) {
-    $("#timer").html(moment().format('hh:mm a'))
-  }, 1000);
-  
-  // Capture Button Click
-  $("#add-train").on("click", function() {
-    // Don't refresh the page!
-    event.preventDefault();
-  
-    // Code in the logic for storing and retrieving the most recent train information
-    var train = $("#trainname-input").val().trim();
-    var destination = $("#destination-input").val().trim();
-    var frequency = $("#frequency-input").val().trim();
-    var firstTime = $("#firsttime-input").val().trim();
-    
-    // Don't forget to provide initial data to your Firebase database. - set replaces old data
-    //if you want to add more users than just the latest one, then use push
-    //database.ref().set({
-    var trainInfo = { 
-      formtrain: train,
-      formdestination: destination,
-      formfrequency: frequency,
-      formfirsttime: firstTime,
-      dateAdded: firebase.database.ServerValue.TIMESTAMP
+  //Declaring the current time
+var currentTime = moment().format();
+
+//Logging the current time
+	console.log("Current Time: " + currentTime);
+				
+//When the submit button is clicked, we will run the snapshot function below.
+$("#click-button").on("click", function() {
+      // Prevent the page from refreshing
+      event.preventDefault();
+
+      // Grabs user input
+	  var trainNameForm = $("#trainNameForm").val().trim();
+	  var destinationForm = $("#destinationForm").val().trim();
+	  var trainTimeForm = moment($("#trainTimeForm").val().trim(), "HH:mm").format("HH:mm");
+	//Saving this goodness
+//	  var frequencyForm = moment($("#frequencyForm").val().trim().format("mm"));
+	  var frequencyForm = $("#frequencyForm").val().trim();
+
+	  // Creates local "temporary" object for holding inputs
+	  var newTrain = {
+		train: trainNameForm,
+		destination: destinationForm,
+		first: trainTimeForm,
+		frequency: frequencyForm
     };
-      //this is added so we can get most resent user so we can get most recent user to brower and to do this we need to change the listener  
-    database.ref().push(trainInfo);
+	//Setting the new values in the database
+	database.ref().push(newTrain);
+	
+	//Console.logging to make sure the new data has been stored to the database
+	console.log(newTrain.train);
+  	console.log(newTrain.destination);
+	console.log(newTrain.first);
+	console.log(newTrain.frequency);
+	
+	//Clearing the inputs
+	 $("#trainNameForm").val("");
+  	 $("#destinationForm").val("");
+	 $("#trainTimeForm").val("");
+	 $("#frequencyForm").val("");
+});
+
+//Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
+database.ref().on("child_added", function(childSnapshot, prevChildKey) {
+
+  console.log(childSnapshot.val());
+	
+  // Store everything into a variable.
+  var trainName = childSnapshot.val().train;
+  var trainDestination = childSnapshot.val().destination;
+  var trainTime = childSnapshot.val().first;
+  var trainFrequency = childSnapshot.val().frequency;
   
-    console.log(trainInfo.formtrain);
-    console.log(trainInfo.formdestination);
-    console.log(trainInfo.formfrequency);
-    console.log(trainInfo.formfirsttime);
-    console.log(trainInfo.dateAdded);
+  //Variable to figure out the converted train time
+  var trainTimeConverted = moment(trainTime, "HH:mm");
+	
+  //Declaring a time difference variable
+  var timeDifference = moment().diff(moment(trainTimeConverted), "minutes");
+	console.log(timeDifference);
+	
+  var frequencyMinutes = childSnapshot.val().frequency;
+	console.log("Frequency Minutes: " + frequencyMinutes);
   
-    // Alert
-    // alert("Train was successfully added");
+  var minutesAway = Math.abs(timeDifference % frequencyMinutes);
+  	console.log("Minutes Away: " + minutesAway);
   
-    // Clears all of the text-boxes
-    $("#trainname-input").val("");
-    $("#destination-input").val("");
-    $("#frequency-input").val("");
-    $("#firsttime-input").val("");
-  
-  });
-  
-  
-  // Firebase watcher + initial loader 
-  database.ref().on("child_added", function(childSnapshot, prevChildKey) {  
-    var train = childSnapshot.val().formtrain;
-    var destination = childSnapshot.val().formdestination;
-    var frequency = childSnapshot.val().formfrequency;
-    var firstTime = childSnapshot.val().formfirsttime;
-  
-    // First Time (pushed back 1 year to make sure it comes before current time)
-    var firstTimeConverted = moment(firstTime, "hh:mm").subtract(1, "years");
-    console.log(firstTimeConverted);
-  
-    //determine Current Time
-    var currentTime = moment();
-    console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm a"));
-  
-    //get timer functioning
-    $("#timer").text(currentTime.format("hh:mm a"));
-  
-    // Difference between the times
-    var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
-    console.log("DIFFERENCE IN TIME: " + diffTime);
-  
-    // Time apart (remainder)
-    var tRemainder = diffTime % frequency;
-    console.log("Remainder: " + tRemainder);
-  
-    //determine Minutes Away
-    var minutesAway = frequency - tRemainder;
-    console.log("MINUTES TILL TRAIN: " + minutesAway);
-  
-    //determine Next Train Arrival
-    var nextArrival = moment().add(minutesAway, "minutes").format("hh:mm a");
-    console.log("ARRIVAL TIME: " + moment(nextArrival).format("hh:mm a"));
-  
-    
-    //want to push to table to add new train 
-    //add new table row
-    //add new train information into row
-    // Add each train's data into the table row
-  
-    //adds back updated information
-    $("#train-table > tbody").append("<tr><td>" + '<i class="fa fa-trash" id="trashcan" aria-hidden="true"></i>' + "</td><td>" + train + "</td><td>" + destination + "</td><td>" +
-    frequency + "</td><td>" + nextArrival + "</td><td>" + minutesAway + "</td></tr>");
-  
-    // var t = setTimeout(startTime, 500);
-  
-  // If any errors are experienced, log them to console.
-  }, function(errorObject) {
-    console.log("The read failed: " + errorObject.code);
-  });
-  
-  
-  //on click for deleting row if trash can is clicked
-  //this on click did not work, did some research and found another option
-  // $(".fa-trash").on("click", function() {
-  $("body").on("click", ".fa-trash", function() {
-    $(this).closest("tr").remove(); 
-    alert("delete button clicked");
-  });
-  
-  //I want to update time of minutesAway and nextArrival 
-  //I am not sure how to call the previous function and use the setInterval or setTimeout to update the time in that function, so once each train is called and time passes then this function empties the table body and pulls each train and redoes the math
-  // Update minutes away by triggering change in firebase children
-  function timeUpdater() {
-    //empty tbody before appending new information
-    $("#train-table > tbody").empty();
-    
-    database.ref().on("child_added", function(childSnapshot, prevChildKey) {  
-    var train = childSnapshot.val().formtrain;
-    var destination = childSnapshot.val().formdestination;
-    var frequency = childSnapshot.val().formfrequency;
-    var firstTime = childSnapshot.val().formfirsttime;
-  
-    // First Time (pushed back 1 year to make sure it comes before current time)
-    var firstTimeConverted = moment(firstTime, "hh:mm").subtract(1, "years");
-    console.log(firstTimeConverted);
-  
-    // Current Time
-    var currentTime = moment();
-    console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm a"));
-    // $("#timer").html(h + ":" + m);
-    $("#timer").text(currentTime.format("hh:mm a"));
-    // Difference between the times
-    var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
-    console.log("DIFFERENCE IN TIME: " + diffTime);
-  
-    // Time apart (remainder)
-    var tRemainder = diffTime % frequency;
-    console.log("Remainder: " + tRemainder);
-  
-    //determine Minutes Away
-    var minutesAway = frequency - tRemainder;
-    console.log("MINUTES TILL TRAIN: " + minutesAway);
-  
-    //determine Next Train Arrival
-    var nextArrival = moment().add(minutesAway, "minutes").format("hh:mm a");
-    console.log("ARRIVAL TIME: " + moment(nextArrival).format("hh:mm a"));
-  
-   //want to push to table to add new train 
-    //add new table row
-    //add new train information into row
-    // Add each train's data into the table row
-    $("#train-table > tbody").append("<tr><td>" + '<i class="fa fa-trash" aria-hidden="true"></i>' + "</td><td>" + train + "</td><td>" + destination + "</td><td>" +
-    frequency + "</td><td>" + nextArrival + "</td><td>" + minutesAway + "</td></tr>");
-  
-    })
-  };
-  
-  setInterval(timeUpdater, 6000);
-  
-  // Create Error Handling
-  
-  // function(errorObject) {
-  // console.log("The read failed: " + errorObject.code);
-  // }
+  var nextArrival = moment(currentTime).add(minutesAway, "minutes").format("hh:mm A");
+	console.log("Next Arrival: " + nextArrival);
+	
+	
+  //Adding into the table
+  $("#trainScheduleTable > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDestination + "</td><td>" + trainFrequency + "</td><td>" + nextArrival + "</td><td>" + minutesAway + "</td></tr>");
+});

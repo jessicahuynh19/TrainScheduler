@@ -1,18 +1,50 @@
 h1 {
-	/*color: #F70201;*/
-	text-shadow: 3px 3px #F70201;
-	font-weight: bold;
+    text-align: center;
+    color: white;
 }
 
-h4,h5 {
-	text-shadow: 1px 1px #F70201;
+.pHeader {
+    text-align: center;
+    color: white;
 }
 
-/* img {
-	border: 3px solid white;
-} */
+.jumbotron {
+	border-radius: 25px;
+    background-color: #62929E;
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-top: 2%;
+}
 
-.btn.btn-primary {
-	text-shadow: .25px .25px #F70201;
-	border: 1.25px solid #F70201;
+
+/*
+.wrapper {
+    background-image: url("http://i.imgur.com/BFBYJUV.jpg");
+}
+*/
+
+.table {
+   font-family: 'Roboto', sans-serif;
+
+}
+
+caption {
+	font-family: 'Roboto', sans-serif;
+	text-align: center;
+}
+
+.panel {
+	border-radius: 25px;
+/*    background-color: #62929E;*/
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-top: 2%;
+	
+}
+
+.panel-default>.panel-heading{
+	border-radius: 15px 15px 0px 0px;
+	border-style: solid;
+	border-width: 1px;
+	
 }
